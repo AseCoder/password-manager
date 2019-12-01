@@ -1,0 +1,16 @@
+{
+  "name": "password_manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start.js",
+  "scripts": {
+    "start": "run.bat"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^6.0.7",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0"
+  }
+}
