@@ -3,10 +3,98 @@ body, html {
   height: 100%;
   margin: 0;
   background-color: #32353a;
+  color: white;
+  font-family: Dubai Medium, Arial, sans-serif;
 }
 nav {
-  width: 20%;
+  width: 220px;
   height: 100%;
-  background-color: darkred;
-  min-width: 190px;
+  background-color: rgba(230, 240, 255, 0.09);
+  float: left;
+}
+.scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.greeting {
+  width: 100%;
+  height: 150px;
+  background-color: rgba(215, 230, 255, 0.15);
+  text-align: center;
+}
+.time {
+  margin: 0;
+  display: inline;
+  line-height: 150px;
+  font-size: 32px;
+}
+.time-lighter {
+  color: rgba(255, 255, 255, 0.8);
+}
+.filter {
+  width: 100%;
+  height: 30px;
+  background-color: #efefef;
+}
+.filter-input {
+  width: 82%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: none;
+  margin-left: 18%;
+}
+.filter-input:focus {
+  outline: none;
+}
+.credlist-div {
+  width: 100%;
+  height: auto;
+}
+.credlist {
+  width: 100%;
+  margin: 0;
+  list-style-type: none;
+  padding: 0;
+}
+.credlist li {
+  width: calc(100% - 18px);
+  margin: 0;
+  padding: 6px 0 6px 18px;
+}
+.credlist li:hover { 
+  background-color: rgba(190, 220, 255, 0.1);
+  cursor: pointer;
+}
+#spyglass {
+  position: absolute;
+}
+.display {
+  float: right;
+  width: calc(100% - 270px);
+}
+.display * {
+  margin: 0;
+  display: block;
+}
+.display #credentialName {
+  font-size: 36px;
+  font-weight: 100;
+}
+.credentialFields {
+  display: block;
+  height: auto;
+  background-color: rgba(230, 240, 255, 0.6);
+}
+.credentialFields button {
+  float: left;
+  display: block;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0);
+  line-height: 40px;
+  border: 0;
 }
