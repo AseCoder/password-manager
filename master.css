@@ -64,8 +64,11 @@ nav {
   padding: 6px 0 6px 18px;
 }
 .credlist li:hover { 
-  background-color: rgba(190, 220, 255, 0.1);
+  background-color: rgba(190, 220, 255, 0.12);
   cursor: pointer;
+}
+.active {
+  background-color: rgba(190, 220, 255, 0.08);
 }
 #spyglass {
   position: absolute;
@@ -94,7 +97,14 @@ nav {
   width: 40px;
   height: 40px;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(170, 220, 255, 0.1);
+  color: white;
   line-height: 40px;
   border: 0;
+  margin: 0 6px 6px 0;
+  cursor: pointer;
+  font-size: 28px;
+}
+.credentialFields button:hover {
+  background-color: rgba(210, 240, 255, 0.2);
 }

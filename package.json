@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron": "^6.0.7",
     "jquery": "^3.4.1",
     "moment": "^2.24.0"
   }

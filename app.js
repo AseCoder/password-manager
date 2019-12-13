@@ -4,6 +4,8 @@ const $ = require('jquery');
 
 client.storage.initialize();
 
+client.storage.displayCredential(client.storage.ids[0]);
+
 setInterval(() => {
   const now = moment();
   $('#hours').text(now.format('HH'));

@@ -2,7 +2,7 @@ const Credentials = require('./credentials.js');
 
 class CredentialWrapper {
   constructor(options) {
-    this.name = options.name || '';
+    this.name = options.name;
     this.id = options.id;
     this.credentials = new Credentials(options.credentials);
   }
