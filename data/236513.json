@@ -1,1 +1,16 @@
-{"name":"TestCredential","id":"236513","creds":{"537966":{"type":"Password","value":"Example","id":"537966"}}}
+{
+  "name": "TestCredential",
+  "id": "236513",
+  "creds": {
+    "584598": {
+      "type": "Email",
+      "value": "@gmail.com",
+      "id": "584598"
+    },
+    "589451": {
+      "type": "Password",
+      "value": "Example",
+      "id": "589451"
+    }
+  }
+}

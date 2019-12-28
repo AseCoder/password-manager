@@ -2,9 +2,7 @@ const client = require('./src/client.js');
 const moment = require('moment')
 const $ = require('jquery');
 
-client.storage.initialize();
-
-client.storage.displayCredential(client.storage.ids[0]);
+client.storage.initialize().displayCredential(client.storage.ids[0]);
 
 setInterval(() => {
   const now = moment();

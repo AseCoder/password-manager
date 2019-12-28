@@ -22,21 +22,19 @@ class Storage extends Map {
     });
     return filtered;
   }
-  async initialize() {
-    return new Promise((resolve, reject) => {
-      const credentialIds = fs.readdirSync(path.join(path.dirname(__dirname), 'data')).map(x => x.slice(0, -5));
-      this.ids = credentialIds;
-      credentialIds.forEach(x => {
-        const read = require('../data/' + x + '.json');
-        this.set(x, new CredentialWrapper({
-          name: read.name,
-          id: read.id,
-          credentials: Object.entries(read.creds),
-        }));
-        this.listCredential(x);
-      });
-      resolve(this);
-    })
+  initialize() {
+    const credentialIds = fs.readdirSync(path.join(path.dirname(__dirname), 'data')).map(x => x.slice(0, -5));
+    this.ids = credentialIds;
+    credentialIds.forEach(x => {
+      const read = require('../data/' + x + '.json');
+      this.set(x, new CredentialWrapper({
+        name: read.name,
+        id: read.id,
+        credentials: Object.entries(read.creds),
+      }));
+      this.listCredential(x);
+    });
+    return this;
   }
   write() {
     let writtenIDS = [];

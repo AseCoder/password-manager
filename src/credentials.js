@@ -5,9 +5,10 @@ class Credentials extends Map {
     super();
     if (iterable) {
       iterable.forEach(x => {
-        this.set(createId(), {
-          type: x[0],
-          value: x[1],
+        this.set(x[0], {
+          type: x[1].type,
+          value: x[1].value,
+          id: x[0],
         });
       });
     }
@@ -32,11 +33,11 @@ class Credentials extends Map {
   }
   toJSON() {
     const obj = {};
-    this.forEach((text, id) => {
+    this.forEach((value, id) => {
       obj[id] = {
-        type: text.type,
-        value: text.value,
-        id: id,
+        type: value.type,
+        value: value.value,
+        id,
       };
     });
     return obj;
