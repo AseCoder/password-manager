@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Password Manager</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="sidebar">
+		<div class="profile">
+			<h1 id="grandTitle">Password Manager</h1>
+			<p id="username"></p>
+			<p id="clock"></p>
+		</div>
+		<div class="accountListButtons">
+			<button onclick="createNewAccount()">Add</button>
+			<button onclick="activateRemoval()" id="removeAccountButton">Remove</button>
+		</div>
+		<div class="searchBar">
+			<p onclick="focusSearch()">🔍</p>
+			<input type="text" id="search" oninput="updateSearch()">
+		</div>
+		<div class="accountList" id="accountList"></div>
+	</div>
+	<div class="content" id="content">
+	</div>
+	<p id="saving" class="active">Saving...</p>
+	<script src="app.js"></script>
+</body>
+</html>
