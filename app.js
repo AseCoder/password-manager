@@ -7,12 +7,7 @@ const accounts = require('./accounts.json');
 
 let activeAccountId;
 
-// defines how small a change has to be to trigger a save
-// if changed, needs reload
-const saveImportance = 1
-// 0: save only when have to
-// 1: save when a major change is done
-// 2: save when anything changes
+let lastSaveTimestamp = 0;
 
 // function for showing the "saving" thing for a second
 let saveIconTimeout;
@@ -25,9 +20,19 @@ const showSavingIcon = () => {
 };
 
 // function for saving
+let saveTimeout;
 const forceSave = () => {
-	showSavingIcon();
-	fs.writeFileSync('./accounts.json', JSON.stringify(accounts));
+	if (saveTimeout) clearTimeout(saveTimeout);
+	saveTimeout = setTimeout(() => {
+		// after uninterrupted 5 seconds, save
+		document.getElementById('saving').classList.remove('active');
+		Promise.all([
+			fs.writeFileSync('./accounts.json', JSON.stringify(accounts)),
+			new Promise(res => setTimeout(res, 1500))
+		]).then(() => {
+			document.getElementById('saving').classList.add('active');
+		});
+	}, 5000);
 };
 
 // manager for modifying a specific accounts credentials
@@ -40,21 +45,21 @@ class credentialsManager {
 		return accounts[this.getAccountIndex()].credentials.find(x => x.i === credentialId);
 	}
 	set(id, newContent = {}) {
-		const { title = '', value = '' } = newContent;
+		const { title = undefined, value = undefined } = newContent;
 		const oldContent = this.get(id);
 		const index = this.getIndex(id);
 		const data = {
 			i: id,
-			title: title || oldContent?.title || '',
-			value: value || oldContent?.value || ''
+			title: title ?? (oldContent?.title || ''),
+			value: value ?? (oldContent?.value || '')
 		};
 		if (index >= 0) accounts[this.getAccountIndex()].credentials[index] = data;
 		else accounts[this.getAccountIndex()].credentials.push(data);
-		if (saveImportance > 0) forceSave();
+		forceSave();
 	}
 	delete(id) {
 		accounts[this.getAccountIndex()].credentials.splice(this.getIndex(id), 1);
-		if (saveImportance > 0) forceSave();
+		forceSave();
 		return;
 	}
 	has(credentialId) {
@@ -88,16 +93,16 @@ class accountManager {
 	}
 	setName(newName) {
 		accounts[this.getAccountIndex()].name = newName || '';
-		if (saveImportance > 0) forceSave();
+		forceSave();
 	}
 	setIcon(newIcon) {
 		accounts[this.getAccountIndex()].icon = newIcon || '';
-		if (saveImportance > 0) forceSave();
+		 forceSave();
 	}
 	delete() {
 		accounts.splice(this.getAccountIndex(), 1);
 		displayAccountWidgets();
-		if (saveImportance > 0) forceSave();
+		forceSave();
 		return undefined;
 	}
 }
@@ -117,7 +122,7 @@ const accountsManager = {
 			credentials: []
 		};
 		accounts.push(createdAccount);
-		if (saveImportance > 0) forceSave();
+		forceSave();
 		return new accountManager(createdAccount);
 	},
 	getAccount(accountId) {
@@ -152,6 +157,8 @@ const createInput = (options = {}) => {
 		defaultTitle,
 		titlePlaceholder,
 		valuePlaceholder,
+		titleOnchangeBool,
+		valueOnchangeBool,
 		titleBool = true,
 		hideable = true,
 		hidden,
@@ -173,13 +180,21 @@ const createInput = (options = {}) => {
 		titleInput.classList.add('credentialTitle', 'credentialInput');
 		titleInput.setAttribute('placeholder', titlePlaceholder || 'Credential Name');
 		titleInput.setAttribute('id', id + '-title')
-		titleInput.onchange = e => {
-			// change credential title
-			const credentialId = parseInt(e.target.id.split('-')[0]);
-			accountsManager.getAccount(activeAccountId).credentials.set(credentialId, { title: e.target.value });
-			// reload credentials
-			displayCredentials(activeAccountId);
-		};
+
+		if (titleOnchangeBool || titleOnchangeBool === undefined) {
+			let timeout;
+			titleInput.oninput = e => {
+				clearTimeout(timeout);
+				timeout = setTimeout(() => {
+					// change credential title
+					const credentialId = parseInt(e.target.id.split('-')[0]);
+					accountsManager.getAccount(activeAccountId).credentials.set(credentialId, { title: e.target.value });
+					// reload credentials
+					displayCredentials(activeAccountId);
+					document.getElementById(e.target.id).focus();
+				}, 150);
+			};
+		}
 		if (defaultTitle) titleInput.value = defaultTitle;
 		inputDiv.appendChild(titleInput);
 	}
@@ -201,13 +216,17 @@ const createInput = (options = {}) => {
 
 	if (defaultValue) valueInput.value = defaultValue;
 
-	valueInput.onchange = e => {
-		// change credential value
-		const credentialId = parseInt(e.target.id.split('-')[0]);
-		accountsManager.getAccount(activeAccountId).credentials.set(credentialId, { value: e.target.value });
-		// reload credentials
-		displayCredentials(activeAccountId);
-	};
+	if (valueOnchangeBool || valueOnchangeBool === undefined) {
+		let timeout;
+		valueInput.oninput = e => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => {
+				// change credential value
+				const credentialId = parseInt(e.target.id.split('-')[0]);
+				accountsManager.getAccount(activeAccountId).credentials.set(credentialId, { value: e.target.value });
+			}, 150);
+		};
+	}
 
 	inputDiv.appendChild(valueInput);
 
@@ -262,7 +281,7 @@ const createInput = (options = {}) => {
 
 // function that takes options and creates a credential field
 const createCredential = (credentialData) => {
-	const isPassword = ['password', 'salasana'].includes(credentialData.title.toLowerCase());
+	const isPassword = ['password', 'salasana', '2fa', 'backup'].some(trigger => credentialData.title.toLowerCase().includes(trigger));
 	const el = createInput({
 		defaultTitle: credentialData.title,
 		defaultValue: credentialData.value,
@@ -287,7 +306,7 @@ const displayCredentials = (accountId) => {
 	const account = accounts.find(x => x.id === accountId);
 
 	// remove active from all widgets
-	document.querySelectorAll('.accountWidget.active').forEach(x => x.classList.remove('active'));
+	document.querySelectorAll('.accountWidgetContainer.active').forEach(x => x.classList.remove('active'));
 
 	// mark widget as active
 	document.getElementById(accountId).classList.add('active');
@@ -309,15 +328,20 @@ const displayCredentials = (accountId) => {
 		titleBool: false,
 		defaultValue: account.name,
 		valuePlaceholder: 'Account Name',
+		valueOnchangeBool: false,
 		hideable: false,
 		removable: false,
 		id: account.id
 	});
-	name.onchange = e => {
-		// when name input field is changed, set account name to new value
-		const newValue = e.target.value;
-		accountsManager.getAccount(accountId).setName(newValue);
-		displayAccountWidgets();
+	let nametimeout;
+	name.oninput = e => {
+		clearTimeout(nametimeout);
+		nametimeout = setTimeout(() => {
+			// when name input field is changed, set account name to new value
+			const newValue = e.target.value;
+			accountsManager.getAccount(accountId).setName(newValue);
+			displayAccountWidgets();
+		}, 200);
 	};
 	headerDiv.appendChild(name);
 
@@ -328,15 +352,21 @@ const displayCredentials = (accountId) => {
 		titleBool: false,
 		defaultValue: account.icon,
 		valuePlaceholder: 'Icon URL',
+		valueOnchangeBool: false,
 		hideable: false,
 		removable: false,
 		id: 'icon'
 	});
-	iconUrl.onchange = e => {
-		// when icon url input field is changed, set account icon url to new value
-		const newValue = e.target.value;
-		accountsManager.getAccount(accountId).setIcon(newValue);
-		displayAccountWidgets();
+	let icontimeout;
+	iconUrl.oninput = e => {
+		clearTimeout(icontimeout);
+		icontimeout = setTimeout(() => {
+			// when icon url input field is changed, set account icon url to new value
+			const newValue = e.target.value;
+			accountsManager.getAccount(accountId).setIcon(newValue);
+			displayAccountWidgets();
+			displayCredentials(accountId);
+		}, 200);
 	};
 	contentDiv.appendChild(iconUrl);
 
@@ -478,8 +508,35 @@ const toggleHide = (elementId) => {
 
 // function that runs when the trash can is clicked. removes credential from account and updates credential display
 const removeCredential = (credentialId) => {
-	accountsManager.getAccount(activeAccountId).credentials.delete(credentialId);
-	displayCredentials(activeAccountId);
+	// create prompt
+	const shadow = document.createElement('div');
+	shadow.classList.add('promptBackground');
+	document.body.appendChild(shadow);
+
+	const promptDiv = document.createElement('div');
+	promptDiv.classList.add('promptContainer');
+	const promptText = document.createElement('p');
+	promptText.appendChild(document.createTextNode(`Are you sure you want to delete this ${accountsManager.getAccount(activeAccountId).credentials.get(credentialId).title}?`));	
+	const promptYes = document.createElement('button');
+	promptYes.appendChild(document.createTextNode('Yes'));
+	promptYes.classList.add('promptButton', 'promptYes');
+	promptYes.addEventListener('click', () => {
+		shadow.remove();
+		promptDiv.remove();
+		accountsManager.getAccount(activeAccountId).credentials.delete(credentialId);
+		displayCredentials(activeAccountId);
+	});
+	const promptNo = document.createElement('button');
+	promptNo.appendChild(document.createTextNode('No'));
+	promptNo.classList.add('promptButton', 'promptNo');
+	promptNo.addEventListener('click', () => {
+		shadow.remove();
+		promptDiv.remove();
+	});
+	promptDiv.appendChild(promptText);
+	promptDiv.appendChild(promptYes);
+	promptDiv.appendChild(promptNo);
+	document.body.appendChild(promptDiv);
 };
 
 // function that runs when "add" is clicked in the sidebar. creates a new blank account
